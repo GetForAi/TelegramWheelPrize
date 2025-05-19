@@ -51,6 +51,13 @@
       font-weight: bold;
     }
 
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 60px auto 20px auto; /* отступ сверху и снизу */
+    }
+
     .arrow {
       width: 0;
       height: 0;
@@ -58,14 +65,14 @@
       border-right: 15px solid transparent;
       border-bottom: 25px solid red;
       position: absolute;
-      top: 120px; /* Положение стрелки */
+      top: -25px; /* строго над кругом */
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
     }
 
-    #wheelCanvas {
-      margin-top: 80px; /* Сдвигаем ниже, чтобы освободить место под стрелку */
+    canvas {
+      display: block;
     }
   </style>
 </head>
@@ -74,10 +81,11 @@
   <div class="balance">Монеты: <span id="coinBalance">100</span></div>
 
   <!-- Вкладка 1: Рулетка -->
-  <div id="tab1" class="tab active" style="position: relative;">
-    <div class="arrow"></div>
-    <canvas id="wheelCanvas" width="300" height="300"></canvas>
-    <br>
+  <div id="tab1" class="tab active">
+    <div class="wheel-container">
+      <div class="arrow"></div>
+      <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    </div>
     <button onclick="spinWheel()">Крутить за монеты</button>
     <div id="resultText" style="margin-top: 10px; font-weight: bold;"></div>
   </div>
@@ -113,13 +121,8 @@
     }
 
     const prizes = [
-      "5 монет",
-      "Ничего",
-      "10 монет",
-      "TON",
-      "Подарок (обычный)",
-      "Подарок (редкий)",
-      "Подарок (эпический)"
+      "5 монет", "Ничего", "10 монет", "TON",
+      "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"
     ];
 
     const canvas = document.getElementById("wheelCanvas");
