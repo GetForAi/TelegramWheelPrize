@@ -55,7 +55,7 @@
       position: relative;
       width: 300px;
       height: 300px;
-      margin: 60px auto 20px auto; /* отступ сверху и снизу */
+      margin: 80px auto 20px auto;
     }
 
     .arrow {
@@ -63,9 +63,9 @@
       height: 0;
       border-left: 15px solid transparent;
       border-right: 15px solid transparent;
-      border-bottom: 25px solid red;
+      border-top: 25px solid red; /* Указывает вниз */
       position: absolute;
-      top: -25px; /* строго над кругом */
+      top: -35px; /* Подняли выше круга */
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
