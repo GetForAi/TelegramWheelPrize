@@ -107,100 +107,124 @@
   </div>
 
   <script>
-    function showTab(index) {
-      for (let i = 1; i <= 3; i++) {
-        document.getElementById('tab' + i).classList.remove('active');
-        document.getElementById('btn' + i).classList.remove('active');
+  function showTab(index) {
+    for (let i = 1; i <= 3; i++) {
+      document.getElementById('tab' + i).classList.remove('active');
+      document.getElementById('btn' + i).classList.remove('active');
+    }
+    document.getElementById('tab' + index).classList.add('active');
+    document.getElementById('btn' + index).classList.add('active');
+  }
+
+  function connectWallet() {
+    alert("Здесь будет подключение к Telegram Wallet");
+  }
+
+  const prizes = [
+    "5 монет", "Ничего", "10 монет", "TON",
+    "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"
+  ];
+
+  const canvas = document.getElementById("wheelCanvas");
+  const ctx = canvas.getContext("2d");
+  const radius = canvas.width / 2;
+  const center = { x: radius, y: radius };
+  const segments = prizes.length;
+
+  let rotation = 0;
+  let spinning = false;
+  let coinBalance = 100;
+
+  function updateBalanceDisplay() {
+    document.getElementById("coinBalance").textContent = coinBalance;
+  }
+
+  function drawWheel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const angle = 2 * Math.PI / segments;
+
+    for (let i = 0; i < segments; i++) {
+      const startAngle = i * angle + rotation;
+      const endAngle = startAngle + angle;
+
+      ctx.beginPath();
+      ctx.moveTo(center.x, center.y);
+      ctx.arc(center.x, center.y, radius, startAngle, endAngle);
+      ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(center.x, center.y);
+      ctx.rotate(startAngle + angle / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#000";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(prizes[i], radius - 10, 5);
+      ctx.restore();
+    }
+  }
+
+  function spinWheel() {
+    if (spinning) return;
+
+    if (coinBalance < 25) {
+      alert("Недостаточно монет для кручения (нужно 25)");
+      return;
+    }
+
+    coinBalance -= 25;
+    updateBalanceDisplay();
+
+    spinning = true;
+
+    const spinAngle = Math.random() * 360 + 360 * 5;
+    const duration = 4000;
+    const startRotation = rotation;
+    const finalRotation = startRotation + (spinAngle * Math.PI / 180);
+    const start = performance.now();
+
+    function animate(time) {
+      const elapsed = time - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      rotation = startRotation + (finalRotation - startRotation) * eased;
+      drawWheel();
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        spinning = false;
+        determinePrize();
       }
-      document.getElementById('tab' + index).classList.add('active');
-      document.getElementById('btn' + index).classList.add('active');
     }
 
-    function connectWallet() {
-      alert("Здесь будет подключение к Telegram Wallet");
+    requestAnimationFrame(animate);
+  }
+
+  function determinePrize() {
+    const anglePerSegment = 360 / segments;
+    let deg = (rotation * 180 / Math.PI) % 360;
+    if (deg < 0) deg += 360;
+
+    const pointerDeg = 270;
+    const relativeDeg = (pointerDeg - deg + 360) % 360;
+    const index = Math.floor(relativeDeg / anglePerSegment);
+    const prize = prizes[index];
+    document.getElementById("resultText").textContent = `Выпало: ${prize}`;
+
+    // Начисление монет, если выиграл
+    if (prize === "5 монет") {
+      coinBalance += 5;
+    } else if (prize === "10 монет") {
+      coinBalance += 10;
     }
 
-    const prizes = [
-      "5 монет", "Ничего", "10 монет", "TON",
-      "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"
-    ];
+    updateBalanceDisplay();
+  }
 
-    const canvas = document.getElementById("wheelCanvas");
-    const ctx = canvas.getContext("2d");
-    const radius = canvas.width / 2;
-    const center = { x: radius, y: radius };
-    const segments = prizes.length;
-    let rotation = 0;
-    let spinning = false;
+  updateBalanceDisplay();
+  drawWheel();
+</script>
 
-    function drawWheel() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const angle = 2 * Math.PI / segments;
-
-      for (let i = 0; i < segments; i++) {
-        const startAngle = i * angle + rotation;
-        const endAngle = startAngle + angle;
-
-        ctx.beginPath();
-        ctx.moveTo(center.x, center.y);
-        ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-        ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.save();
-        ctx.translate(center.x, center.y);
-        ctx.rotate(startAngle + angle / 2);
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#000";
-        ctx.font = "14px sans-serif";
-        ctx.fillText(prizes[i], radius - 10, 5);
-        ctx.restore();
-      }
-    }
-
-    function spinWheel() {
-      if (spinning) return;
-      spinning = true;
-
-      const spinAngle = Math.random() * 360 + 360 * 5;
-      const duration = 4000;
-      const startRotation = rotation;
-      const finalRotation = startRotation + (spinAngle * Math.PI / 180);
-      const start = performance.now();
-
-      function animate(time) {
-        const elapsed = time - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-
-        rotation = startRotation + (finalRotation - startRotation) * eased;
-        drawWheel();
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          spinning = false;
-          determinePrize();
-        }
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    function determinePrize() {
-      const anglePerSegment = 360 / segments;
-      let deg = (rotation * 180 / Math.PI) % 360;
-      if (deg < 0) deg += 360;
-
-      const pointerDeg = 270;
-      const relativeDeg = (pointerDeg - deg + 360) % 360;
-      const index = Math.floor(relativeDeg / anglePerSegment);
-      const prize = prizes[index];
-      document.getElementById("resultText").textContent = `Выпало: ${prize}`;
-    }
-
-    drawWheel();
-  </script>
-</body>
-</html>
