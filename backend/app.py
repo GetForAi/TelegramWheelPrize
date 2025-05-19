@@ -3,14 +3,13 @@ from flask_cors import CORS
 import json
 import os
 import threading
+import hmac
+import hashlib
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
-# Flask backend
 app = Flask(__name__)
 CORS(app)
 
+TOKEN = "ТВОЙ_ТОКЕН_ОТ_Бота"  # <-- вставь сюда актуальный токен от BotFather
 BALANCE_FILE = 'balances.json'
 
 def load_balances():
@@ -37,35 +36,25 @@ def update_balance(user_id):
     save_balances(data)
     return jsonify({'status': 'ok', 'balance': amount})
 
-# Telegram bot
-TOKEN = "8103404493:AAFhKLIlBMeujxkTEporZWMjP36MgvpSWH0"  # <-- Вставь сюда свой токен
+def check_telegram_auth(data):
+    check_hash = data.pop("hash")
+    auth_data = [f"{k}={v}" for k, v in sorted(data.items())]
+    data_check_string = "\n".join(auth_data)
+    secret_key = hashlib.sha256(TOKEN.encode()).digest()
+    hmac_string = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+    return hmac_string == check_hash
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [KeyboardButton(text="🎰 Открыть рулетку", web_app=WebAppInfo(url="https://telegram-wheel-prize.vercel.app"))]
-    ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text("Нажми кнопку ниже, чтобы открыть рулетку:", reply_markup=reply_markup)
+@app.route("/auth", methods=["POST"])
+def auth():
+    data = request.json
+    if not check_telegram_auth(data.copy()):
+        return jsonify({"error": "unauthorized"}), 401
+    user = {
+        "id": data["id"],
+        "username": data.get("username", "")
+    }
+    return jsonify({"ok": True, "user": user})
 
-import asyncio
-
-def run_telegram_bot():
-    async def bot_main():
-        application = ApplicationBuilder().token(TOKEN).build()
-        application.add_handler(CommandHandler("start", start))
-        await application.initialize()
-        await application.start()
-        await application.updater.start_polling()
-        await application.updater.idle()
-
-    asyncio.run(bot_main())
-
-
-# Запуск Flask и бота
 if __name__ == '__main__':
-    # запускаем телеграм-бота в отдельном потоке
-    threading.Thread(target=run_telegram_bot).start()
-
-    # запускаем Flask-сервер
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
