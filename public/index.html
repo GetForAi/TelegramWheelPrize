@@ -11,13 +11,17 @@
       background-color: #f3f3f3;
       position: relative;
     }
+
     .tab {
       display: none;
       padding: 20px;
+      text-align: center;
     }
+
     .tab.active {
       display: block;
     }
+
     .navbar {
       position: fixed;
       bottom: 0;
@@ -27,6 +31,7 @@
       background-color: #fff;
       border-top: 1px solid #ccc;
     }
+
     .navbar button {
       flex: 1;
       padding: 15px;
@@ -34,37 +39,38 @@
       border: none;
       font-size: 16px;
     }
+
     .navbar button.active {
       background-color: #e0e0e0;
     }
+
     .balance {
       position: absolute;
       top: 10px;
       right: 15px;
       font-weight: bold;
     }
-    canvas {
-      display: block;
-      margin: 0 auto;
-    }
-    .arrow {
-  width: 0;
-  height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-bottom: 25px solid red;
-  position: absolute;
-  top: 60px; /* БЫЛО 100px */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-}
 
+    .arrow {
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid red;
+      position: absolute;
+      top: 120px; /* Положение стрелки */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    #wheelCanvas {
+      margin-top: 80px; /* Сдвигаем ниже, чтобы освободить место под стрелку */
+    }
   </style>
 </head>
 <body>
 
-  <!-- Баланс -->
   <div class="balance">Монеты: <span id="coinBalance">100</span></div>
 
   <!-- Вкладка 1: Рулетка -->
@@ -107,13 +113,13 @@
     }
 
     const prizes = [
-      "5 монет",               // 0
-      "Ничего",                // 1
-      "10 монет",              // 2
-      "TON",                   // 3
-      "Подарок (обычный)",     // 4
-      "Подарок (редкий)",      // 5
-      "Подарок (эпический)"    // 6
+      "5 монет",
+      "Ничего",
+      "10 монет",
+      "TON",
+      "Подарок (обычный)",
+      "Подарок (редкий)",
+      "Подарок (эпический)"
     ];
 
     const canvas = document.getElementById("wheelCanvas");
@@ -154,17 +160,16 @@
       if (spinning) return;
       spinning = true;
 
-      const spinAngle = Math.random() * 360 + 360 * 5; // 5+ оборотов
+      const spinAngle = Math.random() * 360 + 360 * 5;
       const duration = 4000;
       const startRotation = rotation;
       const finalRotation = startRotation + (spinAngle * Math.PI / 180);
-
       const start = performance.now();
 
       function animate(time) {
         const elapsed = time - start;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3); // ease out
+        const eased = 1 - Math.pow(1 - progress, 3);
 
         rotation = startRotation + (finalRotation - startRotation) * eased;
         drawWheel();
@@ -182,13 +187,11 @@
 
     function determinePrize() {
       const anglePerSegment = 360 / segments;
-      let deg = (rotation * 180 / Math.PI) % 360; // convert from radians
+      let deg = (rotation * 180 / Math.PI) % 360;
       if (deg < 0) deg += 360;
 
-      // Верх — это 270 градусов
       const pointerDeg = 270;
       const relativeDeg = (pointerDeg - deg + 360) % 360;
-
       const index = Math.floor(relativeDeg / anglePerSegment);
       const prize = prizes[index];
       document.getElementById("resultText").textContent = `Выпало: ${prize}`;
