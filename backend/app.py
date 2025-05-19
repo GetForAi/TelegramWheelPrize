@@ -38,7 +38,7 @@ def update_balance(user_id):
     return jsonify({'status': 'ok', 'balance': amount})
 
 # Telegram bot
-TOKEN = "8103404493:AAEa4xQG1hYW2XzJLYLxINqd1X7xTBsF5Y8"  # <-- Вставь сюда свой токен
+TOKEN = "8103404493:AAFhKLIlBMeujxkTEporZWMjP36MgvpSWH0"  # <-- Вставь сюда свой токен
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
