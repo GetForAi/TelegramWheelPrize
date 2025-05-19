@@ -3,61 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Telegram WebApp</title>
+  <title>Telegram WebApp Debug</title>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
       background-color: #f3f3f3;
-      position: relative;
     }
-
-    .tab {
-      display: none;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .tab.active {
-      display: block;
-    }
-
-    .navbar {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      background-color: #fff;
-      border-top: 1px solid #ccc;
-    }
-
-    .navbar button {
-      flex: 1;
-      padding: 15px;
-      background: none;
-      border: none;
-      font-size: 16px;
-    }
-
-    .navbar button.active {
-      background-color: #e0e0e0;
-    }
-
     .balance {
       position: absolute;
       top: 10px;
       right: 15px;
       font-weight: bold;
     }
-
     .wheel-container {
       position: relative;
       width: 300px;
       height: 300px;
       margin: 80px auto 20px auto;
     }
-
     .arrow {
       width: 0;
       height: 0;
@@ -70,40 +34,21 @@
       transform: translateX(-50%);
       z-index: 10;
     }
-
     canvas {
       display: block;
     }
   </style>
 </head>
 <body>
-
   <div class="balance">Монеты: <span id="coinBalance">0</span></div>
 
-  <!-- Вкладка 1 -->
-  <div id="tab1" class="tab active">
-    <div class="wheel-container">
-      <div class="arrow"></div>
-      <canvas id="wheelCanvas" width="300" height="300"></canvas>
-    </div>
-    <button onclick="spinWheel()">Крутить за монеты</button>
-    <div id="resultText" style="margin-top: 10px; font-weight: bold;"></div>
+  <div class="wheel-container">
+    <div class="arrow"></div>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
   </div>
 
-  <!-- Вкладка 2 -->
-  <div id="tab2" class="tab">Розыгрыши (заглушка)</div>
-
-  <!-- Вкладка 3 -->
-  <div id="tab3" class="tab">
-    Меню<br><br>
-    <button onclick="connectWallet()">Подключить Telegram Wallet</button>
-  </div>
-
-  <div class="navbar">
-    <button id="btn1" class="active" onclick="showTab(1)">Колесо</button>
-    <button id="btn2" onclick="showTab(2)">Розыгрыши</button>
-    <button id="btn3" onclick="showTab(3)">Меню</button>
-  </div>
+  <button onclick="spinWheel()">Крутить за монеты</button>
+  <div id="resultText" style="margin-top: 10px; font-weight: bold;"></div>
 
   <script>
     const prizes = [
@@ -116,19 +61,6 @@
     let rotation = 0;
     let spinning = false;
 
-    function showTab(index) {
-      for (let i = 1; i <= 3; i++) {
-        document.getElementById('tab' + i).classList.remove('active');
-        document.getElementById('btn' + i).classList.remove('active');
-      }
-      document.getElementById('tab' + index).classList.add('active');
-      document.getElementById('btn' + index).classList.add('active');
-    }
-
-    function connectWallet() {
-      alert("Здесь будет подключение к Telegram Wallet");
-    }
-
     function updateBalanceDisplay() {
       document.getElementById("coinBalance").textContent = coinBalance;
     }
@@ -139,26 +71,27 @@
         const data = await res.json();
         coinBalance = data.balance || 100;
         updateBalanceDisplay();
-        console.log("Загружен баланс:", coinBalance);
+        console.log("✅ Загружен баланс:", coinBalance);
       } catch (err) {
-        console.error("Ошибка загрузки баланса", err);
+        console.error("❌ Ошибка загрузки баланса:", err);
         coinBalance = 100;
         updateBalanceDisplay();
       }
     }
 
     async function saveBalance() {
-      console.log("Сохраняем баланс для", userId, "=>", coinBalance);
+      console.log("💾 Сохраняем баланс для", userId, "=>", coinBalance);
       try {
         const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ balance: coinBalance })
         });
+
         const json = await res.json();
-        console.log("Ответ от сервера:", json);
+        console.log("✅ Ответ от сервера:", json);
       } catch (err) {
-        console.error("Ошибка сохранения:", err);
+        console.error("❌ Ошибка сохранения баланса:", err);
       }
     }
 
@@ -249,12 +182,18 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
-        userId = Telegram.WebApp.initDataUnsafe.user.id.toString();
+      console.log("📦 Telegram:", window.Telegram);
+      console.log("📦 initDataUnsafe:", window.Telegram?.WebApp?.initDataUnsafe);
+
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (tgUser) {
+        userId = tgUser.toString();
       } else {
         userId = "guest";
       }
-      console.log("userId:", userId);
+
+      console.log("🆔 userId:", userId);
+
       drawWheel();
       loadBalance();
     });
