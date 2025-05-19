@@ -27,16 +27,13 @@
       z-index: 10;
     }
     canvas { display: block; }
-    #auth { text-align: center; padding: 40px; }
-    #warning { color: red; margin-top: 20px; font-size: 16px; }
+    #warning { color: red; margin-top: 20px; font-size: 16px; text-align: center; padding: 40px; }
   </style>
 </head>
 <body>
 
-<div id="auth">
-  <h2>🎮 Рулетка Telegram</h2>
-  <button onclick="startGame()">Начать игру</button>
-  <div id="warning" style="display:none;">⚠️ Чтобы прогресс сохранялся, запусти игру через Telegram</div>
+<div id="warning" style="display:none;">
+  ⚠️ Чтобы прогресс сохранялся, запусти игру через Telegram
 </div>
 
 <div id="mainApp" style="display:none">
@@ -165,18 +162,17 @@
     }
   }
 
-  function startGame() {
+  window.addEventListener("DOMContentLoaded", () => {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
     if (user?.id) {
       userId = user.id.toString();
-      document.getElementById("auth").style.display = "none";
       document.getElementById("mainApp").style.display = "block";
       drawWheel();
       loadBalance();
     } else {
       document.getElementById("warning").style.display = "block";
     }
-  }
+  });
 </script>
 </body>
 </html>
