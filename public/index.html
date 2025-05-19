@@ -112,57 +112,13 @@
     "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"
   ];
 
-  const canvas = document.getElementById("wheelCanvas");
-  const ctx = canvas.getContext("2d");
-  const radius = canvas.width / 2;
-  const center = { x: radius, y: radius };
-  const segments = prizes.length;
-  let rotation = 0;
-  let spinning = false;
   let coinBalance = 0;
   let userId = null;
-
-  function showTab(index) {
-    for (let i = 1; i <= 3; i++) {
-      document.getElementById('tab' + i).classList.remove('active');
-      document.getElementById('btn' + i).classList.remove('active');
-    }
-    document.getElementById('tab' + index).classList.add('active');
-    document.getElementById('btn' + index).classList.add('active');
-  }
-
-  function connectWallet() {
-    alert("Здесь будет подключение к Telegram Wallet");
-  }
+  let rotation = 0;
+  let spinning = false;
 
   function updateBalanceDisplay() {
     document.getElementById("coinBalance").textContent = coinBalance;
-  }
-
-  function drawWheel() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const angle = 2 * Math.PI / segments;
-
-    for (let i = 0; i < segments; i++) {
-      const startAngle = i * angle + rotation;
-      const endAngle = startAngle + angle;
-
-      ctx.beginPath();
-      ctx.moveTo(center.x, center.y);
-      ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-      ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.save();
-      ctx.translate(center.x, center.y);
-      ctx.rotate(startAngle + angle / 2);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#000";
-      ctx.font = "14px sans-serif";
-      ctx.fillText(prizes[i], radius - 10, 5);
-      ctx.restore();
-    }
   }
 
   async function loadBalance() {
@@ -171,9 +127,9 @@
       const data = await res.json();
       coinBalance = data.balance || 100;
       updateBalanceDisplay();
-    } catch (err) {
-      alert("Ошибка загрузки баланса");
+    } catch {
       coinBalance = 100;
+      updateBalanceDisplay();
     }
   }
 
@@ -184,9 +140,25 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ balance: coinBalance })
       });
-    } catch (err) {
-      console.error("Ошибка сохранения баланса", err);
-    }
+    } catch {}
+  }
+
+  function determinePrize() {
+    const anglePerSegment = 360 / prizes.length;
+    let deg = (rotation * 180 / Math.PI) % 360;
+    if (deg < 0) deg += 360;
+
+    const pointerDeg = 270;
+    const relativeDeg = (pointerDeg - deg + 360) % 360;
+    const index = Math.floor(relativeDeg / anglePerSegment);
+    const prize = prizes[index];
+    document.getElementById("resultText").textContent = `Выпало: ${prize}`;
+
+    if (prize === "5 монет") coinBalance += 5;
+    if (prize === "10 монет") coinBalance += 10;
+
+    updateBalanceDisplay();
+    saveBalance();
   }
 
   function spinWheel() {
@@ -225,31 +197,49 @@
     requestAnimationFrame(animate);
   }
 
-  function determinePrize() {
-    const anglePerSegment = 360 / segments;
-    let deg = (rotation * 180 / Math.PI) % 360;
-    if (deg < 0) deg += 360;
+  function drawWheel() {
+    const canvas = document.getElementById("wheelCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const radius = canvas.width / 2;
+    const center = { x: radius, y: radius };
+    const angle = 2 * Math.PI / prizes.length;
 
-    const pointerDeg = 270;
-    const relativeDeg = (pointerDeg - deg + 360) % 360;
-    const index = Math.floor(relativeDeg / anglePerSegment);
-    const prize = prizes[index];
-    document.getElementById("resultText").textContent = `Выпало: ${prize}`;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (prize === "5 монет") coinBalance += 5;
-    if (prize === "10 монет") coinBalance += 10;
+    for (let i = 0; i < prizes.length; i++) {
+      const startAngle = i * angle + rotation;
+      const endAngle = startAngle + angle;
 
-    updateBalanceDisplay();
-    saveBalance();
+      ctx.beginPath();
+      ctx.moveTo(center.x, center.y);
+      ctx.arc(center.x, center.y, radius, startAngle, endAngle);
+      ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(center.x, center.y);
+      ctx.rotate(startAngle + angle / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#000";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(prizes[i], radius - 10, 5);
+      ctx.restore();
+    }
   }
 
-  // Инициализация Telegram WebApp
-  window.Telegram.WebApp.ready();
-  userId = window.Telegram.WebApp.initDataUnsafe?.user?.id?.toString() || "guest";
+  document.addEventListener("DOMContentLoaded", () => {
+    // WebApp init
+    if (window.Telegram && window.Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user?.id) {
+      userId = Telegram.WebApp.initDataUnsafe.user.id.toString();
+    } else {
+      userId = "guest";
+    }
 
-  updateBalanceDisplay();
-  drawWheel();
-  loadBalance();
+    drawWheel();
+    loadBalance();
+  });
 </script>
 </body>
 
