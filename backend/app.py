@@ -9,7 +9,7 @@ import hashlib
 app = Flask(__name__)
 CORS(app)
 
-TOKEN = "ТВОЙ_ТОКЕН_ОТ_Бота"  # <-- вставь сюда актуальный токен от BotFather
+TOKEN = "8103404493:AAFhKLIlBMeujxkTEporZWMjP36MgvpSWH0"  # <-- вставь сюда актуальный токен от BotFather
 BALANCE_FILE = 'balances.json'
 
 def load_balances():
