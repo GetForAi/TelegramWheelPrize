@@ -47,10 +47,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text("Нажми кнопку ниже, чтобы открыть рулетку:", reply_markup=reply_markup)
 
+import asyncio
+
 def run_telegram_bot():
-    application = ApplicationBuilder().token(TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    application.run_polling()
+    async def bot_main():
+        application = ApplicationBuilder().token(TOKEN).build()
+        application.add_handler(CommandHandler("start", start))
+        await application.initialize()
+        await application.start()
+        await application.updater.start_polling()
+        await application.updater.idle()
+
+    asyncio.run(bot_main())
+
 
 # Запуск Flask и бота
 if __name__ == '__main__':
