@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: telegram-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/app.py
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: true
