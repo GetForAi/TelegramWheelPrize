@@ -27,15 +27,16 @@
       z-index: 10;
     }
     canvas { display: block; }
+    #auth { text-align: center; padding: 40px; }
+    #warning { color: red; margin-top: 20px; font-size: 16px; }
   </style>
 </head>
 <body>
 
-<div id="auth" style="text-align:center; padding:40px">
+<div id="auth">
   <h2>🎮 Рулетка Telegram</h2>
   <button onclick="startGame()">Начать игру</button>
-  <div id="loginError" style="color:red;margin-top:10px"></div>
-  <div id="tg-login" style="margin-top: 20px;"></div>
+  <div id="warning" style="display:none;">⚠️ Чтобы прогресс сохранялся, запусти игру через Telegram</div>
 </div>
 
 <div id="mainApp" style="display:none">
@@ -173,43 +174,7 @@
       drawWheel();
       loadBalance();
     } else {
-      showLoginWidget();
-    }
-  }
-
-  function showLoginWidget() {
-    document.getElementById('loginError').textContent = '';
-    document.getElementById('tg-login').innerHTML = '';
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?7";
-    script.setAttribute("data-telegram-login", "WheelPrizeBot");
-    script.setAttribute("data-size", "large");
-    script.setAttribute("data-userpic", "false");
-    script.setAttribute("data-request-access", "write");
-    script.setAttribute("data-onauth", "onTelegramAuth(user)");
-    document.getElementById("tg-login").appendChild(script);
-  }
-
-  async function onTelegramAuth(user) {
-    try {
-      const res = await fetch("https://telegramwheelprize.onrender.com/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user)
-      });
-      if (res.ok) {
-        const result = await res.json();
-        userId = result.user.id.toString();
-        document.getElementById("auth").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
-        drawWheel();
-        loadBalance();
-      } else {
-        document.getElementById("loginError").textContent = "Ошибка авторизации через Telegram.";
-      }
-    } catch (err) {
-      console.error("Ошибка авторизации:", err);
-      document.getElementById("loginError").textContent = "Ошибка сервера.";
+      document.getElementById("warning").style.display = "block";
     }
   }
 </script>
