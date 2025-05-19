@@ -6,17 +6,22 @@ import threading
 import hmac
 import hashlib
 
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+# Flask backend
 app = Flask(__name__)
 CORS(app)
 
-TOKEN = "8103404493:AAFhKLIlBMeujxkTEporZWMjP36MgvpSWH0"  # <-- вставь сюда актуальный токен от BotFather
+TOKEN = "8103404493:AAFhKLIlBMeujxkTEporZWMjP36MgvpSWH0"  # <-- Укажи свой актуальный токен
 BALANCE_FILE = 'balances.json'
 
 def load_balances():
-    if not os.path.exists(BALANCE_FILE):
+    try:
+        with open(BALANCE_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
         return {}
-    with open(BALANCE_FILE, 'r') as f:
-        return json.load(f)
 
 def save_balances(data):
     with open(BALANCE_FILE, 'w') as f:
@@ -55,6 +60,21 @@ def auth():
     }
     return jsonify({"ok": True, "user": user})
 
+# Telegram bot
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [KeyboardButton(text="🎮 Играть", web_app=WebAppInfo(url="https://telegram-wheel-prize.vercel.app"))]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text("Нажми кнопку ниже, чтобы запустить игру:", reply_markup=reply_markup)
+
+def run_telegram_bot():
+    application = ApplicationBuilder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.run_polling()
+
+# Запуск Flask и бота
 if __name__ == '__main__':
+    threading.Thread(target=run_telegram_bot).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
