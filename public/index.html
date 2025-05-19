@@ -46,6 +46,16 @@
       display: block;
       margin: 0 auto;
     }
+    .arrow {
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 20px solid red;
+      margin: 0 auto;
+      position: relative;
+      top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -55,6 +65,7 @@
 
   <!-- Вкладка 1: Рулетка -->
   <div id="tab1" class="tab active">
+    <div class="arrow"></div>
     <canvas id="wheelCanvas" width="300" height="300"></canvas>
     <br>
     <button onclick="spinWheel()">Крутить за монеты</button>
@@ -110,7 +121,9 @@
     let spinning = false;
 
     function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       const angle = 2 * Math.PI / segments;
+
       for (let i = 0; i < segments; i++) {
         const startAngle = i * angle + rotation;
         const endAngle = startAngle + angle;
@@ -131,15 +144,6 @@
         ctx.fillText(prizes[i], radius - 10, 5);
         ctx.restore();
       }
-
-      // Стрелочка
-      ctx.beginPath();
-      ctx.moveTo(center.x - 10, 0);
-      ctx.lineTo(center.x + 10, 0);
-      ctx.lineTo(center.x, 20);
-      ctx.closePath();
-      ctx.fillStyle = "red";
-      ctx.fill();
     }
 
     function spinWheel() {
@@ -147,35 +151,35 @@
       spinning = true;
 
       const spinAngle = Math.random() * 360 + 360 * 5; // 5+ оборотов
-      const finalRotation = (rotation * 180 / Math.PI + spinAngle) % 360;
-
       const duration = 4000;
+      const startRotation = rotation;
+      const finalRotation = startRotation + (spinAngle * Math.PI / 180);
+
       const start = performance.now();
 
       function animate(time) {
         const elapsed = time - start;
         const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 3); // ease out
+        const eased = 1 - Math.pow(1 - progress, 3); // ease out
 
-        rotation = (spinAngle * easedProgress) * Math.PI / 180;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        rotation = startRotation + (finalRotation - startRotation) * eased;
         drawWheel();
 
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
           spinning = false;
-          determinePrize(finalRotation);
+          determinePrize();
         }
       }
 
       requestAnimationFrame(animate);
     }
 
-    function determinePrize(degrees) {
-      const normalized = (360 - (degrees % 360)) % 360;
-      const segmentAngle = 360 / segments;
-      const index = Math.floor(normalized / segmentAngle);
+    function determinePrize() {
+      const normalized = (2 * Math.PI - (rotation % (2 * Math.PI))) % (2 * Math.PI);
+      const segmentAngle = (2 * Math.PI) / segments;
+      const index = Math.floor(normalized / segmentAngle) % segments;
       const prize = prizes[index];
       document.getElementById("resultText").textContent = `Выпало: ${prize}`;
     }
