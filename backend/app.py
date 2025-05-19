@@ -2,6 +2,22 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+TOKEN = '8103404493:AAEa4xQG1hYW2XzJLYLxINqd1X7xTBsF5Y8'
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [KeyboardButton(text="🎰 Открыть рулетку", web_app=WebAppInfo(url="https://telegram-wheel-prize.vercel.app"))]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text("Нажми кнопку ниже, чтобы открыть рулетку:", reply_markup=reply_markup)
+
+app = ApplicationBuilder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.run_polling()
+
 
 app = Flask(__name__)
 CORS(app)
