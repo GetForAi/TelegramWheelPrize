@@ -107,6 +107,21 @@
   </div>
 
   <script>
+  const prizes = [
+    "5 монет", "Ничего", "10 монет", "TON",
+    "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"
+  ];
+
+  const canvas = document.getElementById("wheelCanvas");
+  const ctx = canvas.getContext("2d");
+  const radius = canvas.width / 2;
+  const center = { x: radius, y: radius };
+  const segments = prizes.length;
+  let rotation = 0;
+  let spinning = false;
+  let coinBalance = 0;
+  let userId = null;
+
   function showTab(index) {
     for (let i = 1; i <= 3; i++) {
       document.getElementById('tab' + i).classList.remove('active');
@@ -119,21 +134,6 @@
   function connectWallet() {
     alert("Здесь будет подключение к Telegram Wallet");
   }
-
-  const prizes = [
-    "5 монет", "Ничего", "10 монет", "TON",
-    "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"
-  ];
-
-  const canvas = document.getElementById("wheelCanvas");
-  const ctx = canvas.getContext("2d");
-  const radius = canvas.width / 2;
-  const center = { x: radius, y: radius };
-  const segments = prizes.length;
-
-  let rotation = 0;
-  let spinning = false;
-  let coinBalance = 100;
 
   function updateBalanceDisplay() {
     document.getElementById("coinBalance").textContent = coinBalance;
@@ -165,17 +165,40 @@
     }
   }
 
+  async function loadBalance() {
+    try {
+      const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`);
+      const data = await res.json();
+      coinBalance = data.balance || 100;
+      updateBalanceDisplay();
+    } catch (err) {
+      alert("Ошибка загрузки баланса");
+      coinBalance = 100;
+    }
+  }
+
+  async function saveBalance() {
+    try {
+      await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ balance: coinBalance })
+      });
+    } catch (err) {
+      console.error("Ошибка сохранения баланса", err);
+    }
+  }
+
   function spinWheel() {
     if (spinning) return;
-
     if (coinBalance < 25) {
-      alert("Недостаточно монет для кручения (нужно 25)");
+      alert("Недостаточно монет (нужно 25)");
       return;
     }
 
     coinBalance -= 25;
     updateBalanceDisplay();
-
+    saveBalance();
     spinning = true;
 
     const spinAngle = Math.random() * 360 + 360 * 5;
@@ -188,7 +211,6 @@
       const elapsed = time - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-
       rotation = startRotation + (finalRotation - startRotation) * eased;
       drawWheel();
 
@@ -214,17 +236,20 @@
     const prize = prizes[index];
     document.getElementById("resultText").textContent = `Выпало: ${prize}`;
 
-    // Начисление монет, если выиграл
-    if (prize === "5 монет") {
-      coinBalance += 5;
-    } else if (prize === "10 монет") {
-      coinBalance += 10;
-    }
+    if (prize === "5 монет") coinBalance += 5;
+    if (prize === "10 монет") coinBalance += 10;
 
     updateBalanceDisplay();
+    saveBalance();
   }
+
+  // Инициализация Telegram WebApp
+  window.Telegram.WebApp.ready();
+  userId = window.Telegram.WebApp.initDataUnsafe?.user?.id?.toString() || "guest";
 
   updateBalanceDisplay();
   drawWheel();
+  loadBalance();
 </script>
+
 
