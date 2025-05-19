@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Telegram WebApp</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f3f3f3;
+    }
+    .tab {
+      display: none;
+      padding: 20px;
+    }
+    .tab.active {
+      display: block;
+    }
+    .navbar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+    .navbar button {
+      flex: 1;
+      padding: 15px;
+      background: none;
+      border: none;
+      font-size: 16px;
+    }
+    .navbar button.active {
+      background-color: #e0e0e0;
+    }
+    .balance {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Баланс -->
+  <div class="balance">Монеты: <span id="coinBalance">100</span></div>
+
+  <!-- Вкладки -->
+  <div id="tab1" class="tab active">Вкладка 1: Рулетка (пока заглушка)</div>
+  <div id="tab2" class="tab">Вкладка 2: Розыгрыши (заглушка)</div>
+  <div id="tab3" class="tab">
+    Вкладка 3: Меню<br><br>
+    <button onclick="connectWallet()">Подключить Telegram Wallet</button>
+  </div>
+
+  <!-- Навигация -->
+  <div class="navbar">
+    <button id="btn1" class="active" onclick="showTab(1)">Колесо</button>
+    <button id="btn2" onclick="showTab(2)">Розыгрыши</button>
+    <button id="btn3" onclick="showTab(3)">Меню</button>
+  </div>
+
+  <script>
+    function showTab(index) {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById('tab' + i).classList.remove('active');
+        document.getElementById('btn' + i).classList.remove('active');
+      }
+      document.getElementById('tab' + index).classList.add('active');
+      document.getElementById('btn' + index).classList.add('active');
+    }
+
+    function connectWallet() {
+      alert("Здесь будет подключение к Telegram Wallet");
+    }
+  </script>
+</body>
+</html>
 
