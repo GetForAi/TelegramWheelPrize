@@ -2,7 +2,7 @@ from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import os
 
-TOKEN = os.getenv("8103404493:AAFhKLIlBMeujxkTEporZWMjP36MgvpSWH0")  # безопасно через переменные окружения
+TOKEN = os.getenv("BOT_TOKEN1")  # безопасно через переменные окружения
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
