@@ -1,189 +1,58 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Telegram Рулетка</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { margin: 0; font-family: sans-serif; background: #f3f3f3; }
-    .tab { display: none; padding: 20px; text-align: center; }
-    .tab.active { display: block; }
-    .navbar {
-      position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around;
-      background: #fff; border-top: 1px solid #ccc;
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f3f3f3;
+      text-align: center;
+      padding-top: 50px;
     }
-    .navbar button { flex: 1; padding: 15px; border: none; background: none; font-size: 16px; }
-    .navbar button.active { background: #eee; }
-    .balance { position: absolute; top: 10px; right: 15px; font-weight: bold; }
-    .wheel-container {
-      position: relative; width: 300px; height: 300px; margin: 80px auto 20px auto;
+    #auth button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 20px;
     }
-    .arrow {
-      width: 0; height: 0;
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-top: 25px solid red;
-      position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+    #warning {
+      color: red;
+      margin-top: 20px;
+      font-size: 16px;
     }
-    canvas { display: block; }
-    #auth { text-align: center; padding: 40px; }
-    #warning { color: red; font-size: 16px; margin-top: 20px; }
   </style>
 </head>
 <body>
-
-<div id="auth">
-  <h2>🎮 Рулетка Telegram</h2>
-  <div id="warning" style="display: none;">
-    ⚠️ Чтобы прогресс сохранялся, запусти игру через Telegram
-  </div>
-</div>
-
-<div id="mainApp" style="display:none">
-  <div class="balance">Монеты: <span id="coinBalance">0</span></div>
-
-  <div id="tab1" class="tab active">
-    <div class="wheel-container">
-      <div class="arrow"></div>
-      <canvas id="wheelCanvas" width="300" height="300"></canvas>
+  <div id="auth">
+    <h2>🎮 Рулетка Telegram</h2>
+    <button onclick="startApp()">Начать игру</button>
+    <div id="warning" style="display: none;">
+      ⚠️ Чтобы прогресс сохранялся, запусти игру через Telegram
     </div>
-    <button onclick="spinWheel()">Крутить за монеты</button>
-    <div id="resultText" style="margin-top: 10px; font-weight: bold;"></div>
   </div>
 
-  <div id="tab2" class="tab">Розыгрыши (заглушка)</div>
-  <div id="tab3" class="tab">
-    Меню<br><br>
-    <button onclick="connectWallet()">Подключить Telegram Wallet</button>
+  <div id="mainApp" style="display: none;">
+    <h3>Добро пожаловать в игру!</h3>
+    <p>Твой ID: <span id="userId"></span></p>
+    <!-- Здесь будет всё остальное приложение: баланс, колесо и т.д. -->
   </div>
 
-  <div class="navbar">
-    <button id="btn1" class="active" onclick="showTab(1)">Колесо</button>
-    <button id="btn2" onclick="showTab(2)">Розыгрыши</button>
-    <button id="btn3" onclick="showTab(3)">Меню</button>
-  </div>
-</div>
-
-<script>
-  const prizes = ["5 монет", "Ничего", "10 монет", "TON", "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"];
-  let coinBalance = 0, userId = null, rotation = 0, spinning = false;
-
-  Telegram.WebApp.ready(); // Обязательная инициализация WebApp
-
-  function showTab(index) {
-    for (let i = 1; i <= 3; i++) {
-      document.getElementById('tab' + i).classList.remove('active');
-      document.getElementById('btn' + i).classList.remove('active');
-    }
-    document.getElementById('tab' + index).classList.add('active');
-    document.getElementById('btn' + index).classList.add('active');
-  }
-
-  function connectWallet() {
-    alert("Здесь будет подключение Telegram Wallet");
-  }
-
-  async function loadBalance() {
-    const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`);
-    const data = await res.json();
-    coinBalance = data.balance || 100;
-    document.getElementById("coinBalance").textContent = coinBalance;
-  }
-
-  async function saveBalance() {
-    await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ balance: coinBalance })
-    });
-  }
-
-  function spinWheel() {
-    if (spinning || coinBalance < 25) return alert("Недостаточно монет");
-    coinBalance -= 25;
-    document.getElementById("coinBalance").textContent = coinBalance;
-    saveBalance();
-    spinning = true;
-
-    const spinAngle = Math.random() * 360 + 360 * 5;
-    const duration = 4000;
-    const startRotation = rotation;
-    const finalRotation = startRotation + (spinAngle * Math.PI / 180);
-    const start = performance.now();
-
-    function animate(time) {
-      const elapsed = time - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      rotation = startRotation + (finalRotation - startRotation) * eased;
-      drawWheel();
-      if (progress < 1) requestAnimationFrame(animate);
-      else { spinning = false; determinePrize(); }
-    }
-
-    requestAnimationFrame(animate);
-  }
-
-  function determinePrize() {
-    const anglePerSegment = 360 / prizes.length;
-    let deg = (rotation * 180 / Math.PI) % 360;
-    if (deg < 0) deg += 360;
-    const pointerDeg = 270;
-    const relativeDeg = (pointerDeg - deg + 360) % 360;
-    const index = Math.floor(relativeDeg / anglePerSegment);
-    const prize = prizes[index];
-    document.getElementById("resultText").textContent = `Выпало: ${prize}`;
-    if (prize === "5 монет") coinBalance += 5;
-    if (prize === "10 монет") coinBalance += 10;
-    document.getElementById("coinBalance").textContent = coinBalance;
-    saveBalance();
-  }
-
-  function drawWheel() {
-    const canvas = document.getElementById("wheelCanvas");
-    const ctx = canvas.getContext("2d");
-    const radius = canvas.width / 2;
-    const center = { x: radius, y: radius };
-    const angle = 2 * Math.PI / prizes.length;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < prizes.length; i++) {
-      const startAngle = i * angle + rotation;
-      const endAngle = startAngle + angle;
-      ctx.beginPath();
-      ctx.moveTo(center.x, center.y);
-      ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-      ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
-      ctx.fill();
-      ctx.stroke();
-      ctx.save();
-      ctx.translate(center.x, center.y);
-      ctx.rotate(startAngle + angle / 2);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#000";
-      ctx.font = "14px sans-serif";
-      ctx.fillText(prizes[i], radius - 10, 5);
-      ctx.restore();
-    }
-  }
-
-  // ⏳ Автоматический запуск при загрузке страницы
-  window.addEventListener("load", () => {
-    setTimeout(() => {
+  <script>
+    function startApp() {
       const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-      console.log("Telegram initData:", user);
       if (user?.id) {
-        userId = user.id.toString();
+        document.getElementById("userId").textContent = user.id;
         document.getElementById("auth").style.display = "none";
         document.getElementById("mainApp").style.display = "block";
-        drawWheel();
-        loadBalance();
+        // Здесь будет логика загрузки баланса и прочего
       } else {
         document.getElementById("warning").style.display = "block";
       }
-    }, 500); // Подождём немного, чтобы initData подгрузился
-  });
-</script>
+    }
 
+    Telegram?.WebApp?.ready?.(); // Telegram WebApp init
+  </script>
 </body>
 </html>
