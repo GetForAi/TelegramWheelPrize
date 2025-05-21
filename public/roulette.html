@@ -33,7 +33,7 @@
       height: 0;
       border-left: 15px solid transparent;
       border-right: 15px solid transparent;
-      border-bottom: 25px solid red;
+      border-top: 25px solid red;
       position: absolute;
       top: -35px;
       left: 50%;
@@ -73,16 +73,23 @@
     const userId = user?.id?.toString() || "guest";
 
     const prizes = ["5 монет", "10 монет", "Ничего", "TON", "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"];
-    let balance = 100;
+    let balance = 0;
     let rotation = 0;
     let spinning = false;
 
     async function loadBalance() {
-      const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`);
-      const data = await res.json();
-      balance = data.balance || 100;
-      document.getElementById("balance").textContent = balance;
-      drawWheel(); 
+      try {
+        const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`);
+        const data = await res.json();
+        balance = data.balance || 100;
+        document.getElementById("balance").textContent = balance;
+        drawWheel();
+      } catch (err) {
+        console.error("Ошибка загрузки баланса:", err);
+        balance = 100;
+        document.getElementById("balance").textContent = balance;
+        drawWheel();
+      }
     }
 
     async function saveBalance() {
@@ -166,7 +173,6 @@
     }
 
     loadBalance();
-    drawWheel(); 
   </script>
 </body>
 </html>
