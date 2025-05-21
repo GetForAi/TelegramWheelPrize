@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrizeGift - Рулетка</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    .balance {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .wheel-container {
+      margin: 40px auto;
+      width: 300px;
+      height: 300px;
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .arrow {
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid red;
+      position: absolute;
+      top: -35px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .spin-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #2a63d4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="balance">Монеты: <span id="balance">0</span></div>
+
+  <div class="wheel-container">
+    <div class="arrow"></div>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+  </div>
+
+  <button class="spin-button" onclick="spinWheel()">Крутить за 25 монет</button>
+  <div id="result"></div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    const user = tg.initDataUnsafe?.user;
+    const userId = user?.id?.toString() || "guest";
+
+    const prizes = ["5 монет", "10 монет", "Ничего", "TON", "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"];
+    let balance = 100;
+    let rotation = 0;
+    let spinning = false;
+
+    async function loadBalance() {
+      const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`);
+      const data = await res.json();
+      balance = data.balance || 100;
+      document.getElementById("balance").textContent = balance;
+    }
+
+    async function saveBalance() {
+      await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ balance })
+      });
+    }
+
+    function spinWheel() {
+      if (spinning || balance < 25) return alert("Недостаточно монет");
+      balance -= 25;
+      document.getElementById("balance").textContent = balance;
+      saveBalance();
+      spinning = true;
+
+      const spinAngle = Math.random() * 360 + 360 * 5;
+      const duration = 4000;
+      const startRotation = rotation;
+      const finalRotation = startRotation + (spinAngle * Math.PI / 180);
+      const start = performance.now();
+
+      function animate(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        rotation = startRotation + (finalRotation - startRotation) * eased;
+        drawWheel();
+        if (progress < 1) requestAnimationFrame(animate);
+        else {
+          spinning = false;
+          determinePrize();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function determinePrize() {
+      const anglePerSegment = 360 / prizes.length;
+      let deg = (rotation * 180 / Math.PI) % 360;
+      if (deg < 0) deg += 360;
+      const pointerDeg = 270;
+      const relativeDeg = (pointerDeg - deg + 360) % 360;
+      const index = Math.floor(relativeDeg / anglePerSegment);
+      const prize = prizes[index];
+      document.getElementById("result").textContent = `Выпало: ${prize}`;
+      if (prize === "5 монет") balance += 5;
+      if (prize === "10 монет") balance += 10;
+      document.getElementById("balance").textContent = balance;
+      saveBalance();
+    }
+
+    function drawWheel() {
+      const canvas = document.getElementById("wheelCanvas");
+      const ctx = canvas.getContext("2d");
+      const radius = canvas.width / 2;
+      const center = { x: radius, y: radius };
+      const angle = 2 * Math.PI / prizes.length;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < prizes.length; i++) {
+        const startAngle = i * angle + rotation;
+        const endAngle = startAngle + angle;
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.arc(center.x, center.y, radius, startAngle, endAngle);
+        ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+        ctx.fill();
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(center.x, center.y);
+        ctx.rotate(startAngle + angle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(prizes[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    loadBalance();
+    drawWheel();
+  </script>
+</body>
+</html>
