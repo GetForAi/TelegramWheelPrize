@@ -4,60 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PrizeGift</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f4f4f4;
+      font-family: sans-serif;
+      background: #f4f4f4;
       text-align: center;
-      padding: 30px 20px;
+      padding: 30px;
     }
     h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-    .emoji {
-      font-size: 28px;
-      margin-right: 10px;
-    }
-    .subtitle {
-      font-size: 18px;
-      color: #444;
-      margin-bottom: 30px;
-    }
-    .btn-start {
-      background-color: #2a63d4;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    .btn-start:hover {
-      background-color: #1e4db1;
+      font-size: 24px;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-  <h1><span class="emoji">🎮</span>Рулетка Telegram</h1>
-  <p class="subtitle" id="greeting">Привет!</p>
-  <button class="btn-start" onclick="startGame()">Начать игру</button>
-
+  <h1>🎮 Рулетка Telegram</h1>
   <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
+    const tg = window.Telegram.WebApp;
+    tg.ready();
 
-    const initData = tg.initDataUnsafe;
-    const user = initData?.user;
-
-    if (user && user.first_name) {
-      document.getElementById("greeting").textContent = `👋 Привет, ${user.first_name}!`;
-    }
-
-    function startGame() {
-      window.location.href = "roulette.html"; // Переход на основную вкладку с игрой
-    }
+    // Переход сразу на страницу рулетки
+    window.location.href = '/roulette.html';
   </script>
 </body>
 </html>
