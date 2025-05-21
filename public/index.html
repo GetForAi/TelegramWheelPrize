@@ -1,58 +1,82 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telegram Рулетка</title>
+  <meta charset="UTF-8">
+  <title>PrizeGift</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      margin: 0;
       font-family: sans-serif;
-      background-color: #f3f3f3;
       text-align: center;
-      padding-top: 50px;
+      margin: 0;
+      padding: 20px;
+      background: #f2f2f2;
     }
-    #auth button {
+    h1 {
+      margin-bottom: 30px;
+    }
+    #start-btn {
       padding: 10px 20px;
       font-size: 18px;
-      margin-top: 20px;
+      background-color: #2481cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
-    #warning {
-      color: red;
-      margin-top: 20px;
-      font-size: 16px;
+    #start-btn:hover {
+      background-color: #1a64a1;
     }
   </style>
 </head>
 <body>
-  <div id="auth">
-    <h2>🎮 Рулетка Telegram</h2>
-    <button onclick="startApp()">Начать игру</button>
-    <div id="warning" style="display: none;">
-      ⚠️ Чтобы прогресс сохранялся, запусти игру через Telegram
-    </div>
-  </div>
 
-  <div id="mainApp" style="display: none;">
-    <h3>Добро пожаловать в игру!</h3>
-    <p>Твой ID: <span id="userId"></span></p>
-    <!-- Здесь будет всё остальное приложение: баланс, колесо и т.д. -->
+  <h1>🎮 Рулетка Telegram</h1>
+
+  <div id="content">
+    <p style="color: red;">⚠ Чтобы прогресс сохранялся, запусти игру через Telegram</p>
   </div>
 
   <script>
-    function startApp() {
-      const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-      if (user?.id) {
-        document.getElementById("userId").textContent = user.id;
-        document.getElementById("auth").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
-        // Здесь будет логика загрузки баланса и прочего
-      } else {
-        document.getElementById("warning").style.display = "block";
-      }
-    }
+    const tg = window.Telegram.WebApp;
+    tg.ready();
 
-    Telegram?.WebApp?.ready?.(); // Telegram WebApp init
+    const user = tg.initDataUnsafe?.user;
+
+    if (user && user.id) {
+      // Пользователь авторизован — отображаем кнопку
+      document.getElementById('content').innerHTML = `
+        <p>👋 Привет, ${user.first_name || 'друг'}!</p>
+        <button id="start-btn">Начать игру</button>
+      `;
+
+      // Отправка на backend
+      fetch("https://ваш-домен/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          username: user.username
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("✅ Авторизация прошла успешно:", data);
+      })
+      .catch(err => {
+        console.error("❌ Ошибка при авторизации:", err);
+      });
+
+      // Обработчик кнопки
+      document.addEventListener('click', e => {
+        if (e.target.id === 'start-btn') {
+          alert('🎉 Игра начинается!');
+        }
+      });
+    }
   </script>
+
 </body>
 </html>
