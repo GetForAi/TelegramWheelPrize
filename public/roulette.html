@@ -82,6 +82,7 @@
       const data = await res.json();
       balance = data.balance || 100;
       document.getElementById("balance").textContent = balance;
+      drawWheel(); 
     }
 
     async function saveBalance() {
@@ -165,7 +166,6 @@
     }
 
     loadBalance();
-    drawWheel();
   </script>
 </body>
 </html>
