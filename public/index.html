@@ -2,47 +2,62 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PrizeGift</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f4f4;
       margin: 0;
-      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+      padding: 30px 20px;
     }
     h1 {
-      font-size: 26px;
-      margin-top: 30px;
+      font-size: 28px;
+      margin-bottom: 10px;
     }
-    #username {
-      margin: 15px 0;
+    .emoji {
+      font-size: 28px;
+      margin-right: 10px;
+    }
+    .subtitle {
       font-size: 18px;
+      color: #444;
+      margin-bottom: 30px;
     }
-    .footer {
-      margin-top: 40px;
-      font-size: 14px;
-      color: gray;
+    .btn-start {
+      background-color: #2a63d4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-start:hover {
+      background-color: #1e4db1;
     }
   </style>
 </head>
 <body>
-  <h1>🎮 Рулетка Telegram</h1>
-  <div id="username">👋 Привет!</div>
+  <h1><span class="emoji">🎮</span>Рулетка Telegram</h1>
+  <p class="subtitle" id="greeting">Привет!</p>
+  <button class="btn-start" onclick="startGame()">Начать игру</button>
 
   <script>
-    const tg = window.Telegram.WebApp;
+    let tg = window.Telegram.WebApp;
     tg.expand();
 
-    if (tg.initDataUnsafe?.user?.first_name) {
-      document.getElementById("username").innerText = `👋 Привет, ${tg.initDataUnsafe.user.first_name}!`;
+    const initData = tg.initDataUnsafe;
+    const user = initData?.user;
+
+    if (user && user.first_name) {
+      document.getElementById("greeting").textContent = `👋 Привет, ${user.first_name}!`;
     }
 
-    // Здесь сразу можешь вызывать рендер интерфейса рулетки
-    // Например: renderWheel(), renderTabs(), etc.
+    function startGame() {
+      window.location.href = "roulette.html"; // Переход на основную вкладку с игрой
+    }
   </script>
-
-  <div class="footer">@WheelPrizeBot</div>
 </body>
 </html>
