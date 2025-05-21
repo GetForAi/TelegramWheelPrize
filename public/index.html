@@ -1,82 +1,48 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>PrizeGift</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       text-align: center;
+      background: #f4f4f4;
       margin: 0;
       padding: 20px;
-      background: #f2f2f2;
     }
     h1 {
-      margin-bottom: 30px;
+      font-size: 26px;
+      margin-top: 30px;
     }
-    #start-btn {
-      padding: 10px 20px;
+    #username {
+      margin: 15px 0;
       font-size: 18px;
-      background-color: #2481cc;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
     }
-    #start-btn:hover {
-      background-color: #1a64a1;
+    .footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: gray;
     }
   </style>
 </head>
 <body>
-
   <h1>🎮 Рулетка Telegram</h1>
-
-  <div id="content">
-    <p style="color: red;">⚠ Чтобы прогресс сохранялся, запусти игру через Telegram</p>
-  </div>
+  <div id="username">👋 Привет!</div>
 
   <script>
     const tg = window.Telegram.WebApp;
-    tg.ready();
+    tg.expand();
 
-    const user = tg.initDataUnsafe?.user;
-
-    if (user && user.id) {
-      // Пользователь авторизован — отображаем кнопку
-      document.getElementById('content').innerHTML = `
-        <p>👋 Привет, ${user.first_name || 'друг'}!</p>
-        <button id="start-btn">Начать игру</button>
-      `;
-
-      // Отправка на backend
-      fetch("http://93.183.82.218:5000/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          username: user.username
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log("✅ Авторизация прошла успешно:", data);
-      })
-      .catch(err => {
-        console.error("❌ Ошибка при авторизации:", err);
-      });
-
-      // Обработчик кнопки
-      document.addEventListener('click', e => {
-        if (e.target.id === 'start-btn') {
-          alert('🎉 Игра начинается!');
-        }
-      });
+    if (tg.initDataUnsafe?.user?.first_name) {
+      document.getElementById("username").innerText = `👋 Привет, ${tg.initDataUnsafe.user.first_name}!`;
     }
+
+    // Здесь сразу можешь вызывать рендер интерфейса рулетки
+    // Например: renderWheel(), renderTabs(), etc.
   </script>
 
+  <div class="footer">@WheelPrizeBot</div>
 </body>
 </html>
