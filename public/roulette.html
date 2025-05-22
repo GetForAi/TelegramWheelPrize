@@ -79,7 +79,7 @@
 
     async function loadBalance() {
       try {
-        const res = await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`);
+        const res = await fetch(`http://93.183.82.218:5000/balance/${userId}`);
         const data = await res.json();
         balance = data.balance || 100;
         document.getElementById("balance").textContent = balance;
@@ -93,7 +93,7 @@
     }
 
     async function saveBalance() {
-      await fetch(`https://telegramwheelprize.onrender.com/balance/${userId}`, {
+      await fetch(`http://93.183.82.218:5000/balance/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ balance })
