@@ -67,10 +67,13 @@
   <div id="result"></div>
 
   <script>
+    const BACKEND_URL = "http://93.183.82.218:5000";
+
     const tg = window.Telegram.WebApp;
     tg.ready();
     const user = tg.initDataUnsafe?.user;
     const userId = user?.id?.toString() || "guest";
+    console.log("User ID:", userId);
 
     const prizes = ["5 монет", "10 монет", "Ничего", "TON", "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"];
     let balance = 0;
@@ -78,8 +81,9 @@
     let spinning = false;
 
     async function loadBalance() {
+      if (userId === "guest") return;
       try {
-        const res = await fetch(`http://93.183.82.218:5000/balance/${userId}`);
+        const res = await fetch(`${BACKEND_URL}/balance/${userId}`);
         const data = await res.json();
         balance = data.balance || 100;
         document.getElementById("balance").textContent = balance;
@@ -93,7 +97,9 @@
     }
 
     async function saveBalance() {
-      await fetch(`http://93.183.82.218:5000/balance/${userId}`, {
+      if (userId === "guest") return;
+      console.log(`💾 Сохраняем баланс ${balance} для ${userId}`);
+      await fetch(`${BACKEND_URL}/balance/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ balance })
@@ -101,7 +107,11 @@
     }
 
     function spinWheel() {
-      if (spinning || balance < 25) return alert("Недостаточно монет");
+      if (spinning || balance < 25) {
+        alert("Недостаточно монет");
+        return;
+      }
+
       balance -= 25;
       document.getElementById("balance").textContent = balance;
       saveBalance();
@@ -119,8 +129,9 @@
         const eased = 1 - Math.pow(1 - progress, 3);
         rotation = startRotation + (finalRotation - startRotation) * eased;
         drawWheel();
-        if (progress < 1) requestAnimationFrame(animate);
-        else {
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
           spinning = false;
           determinePrize();
         }
@@ -137,9 +148,12 @@
       const relativeDeg = (pointerDeg - deg + 360) % 360;
       const index = Math.floor(relativeDeg / anglePerSegment);
       const prize = prizes[index];
+
       document.getElementById("result").textContent = `Выпало: ${prize}`;
+
       if (prize === "5 монет") balance += 5;
       if (prize === "10 монет") balance += 10;
+
       document.getElementById("balance").textContent = balance;
       saveBalance();
     }
