@@ -69,12 +69,6 @@
   <script>
     const BACKEND_URL = "https://prizegift.space";
 
-    await fetch(`${BACKEND_URL}/balance/${userId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ balance })
-    });
-
     const tg = window.Telegram.WebApp;
     tg.ready();
     const user = tg.initDataUnsafe?.user;
@@ -95,7 +89,7 @@
         document.getElementById("balance").textContent = balance;
         drawWheel();
       } catch (err) {
-        console.error("Ошибка загрузки баланса:", err);
+        console.error("❌ Ошибка загрузки баланса:", err);
         balance = 100;
         document.getElementById("balance").textContent = balance;
         drawWheel();
@@ -104,12 +98,15 @@
 
     async function saveBalance() {
       if (userId === "guest") return;
-      console.log(`💾 Сохраняем баланс ${balance} для ${userId}`);
-      await fetch(`${BACKEND_URL}/balance/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ balance })
-      });
+      try {
+        await fetch(`${BACKEND_URL}/balance/${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ balance })
+        });
+      } catch (err) {
+        console.error("❌ Ошибка сохранения баланса:", err);
+      }
     }
 
     function spinWheel() {
