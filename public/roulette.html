@@ -73,7 +73,17 @@
     const user = tg.initDataUnsafe?.user;
     const userId = user?.id?.toString() || "guest";
 
-    const prizes = ["5 монет", "10 монет", "Ничего", "TON", "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"];
+    const prizes = [
+      "Подарок (эпический)",
+      "5 монет",
+      "Подарок (редкий)",
+      "0.1 TON",
+      "Подарок (обычный)",
+      "20 монет",
+      "Ничего",
+      "1 TON"
+    ];
+
     let balance = 0;
     let rotation = 0;
     let spinning = false;
@@ -84,12 +94,12 @@
       try {
         const res = await fetch(`${BACKEND_URL}/balance/${userId}`);
         const data = await res.json();
-        balance = data.balance || 100;
+        balance = data.balance !== undefined ? data.balance : (userId === "123" ? 10000 : 20);
         document.getElementById("balance").textContent = balance;
         drawWheel();
       } catch (err) {
         console.error("Ошибка загрузки баланса:", err);
-        balance = 100;
+        balance = userId === "123" ? 10000 : 20;
         document.getElementById("balance").textContent = balance;
         drawWheel();
       }
@@ -125,7 +135,7 @@
       function animate(time) {
         const elapsed = time - start;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 5); // плавное замедление
+        const eased = 1 - Math.pow(1 - progress, 5);
         rotation = startRotation + (finalRotation - startRotation) * eased;
         drawWheel();
         if (progress < 1) requestAnimationFrame(animate);
@@ -151,7 +161,7 @@
       document.getElementById("result").textContent = `Выпало: ${prize}`;
 
       if (prize === "5 монет") balance += 5;
-      if (prize === "10 монет") balance += 10;
+      if (prize === "20 монет") balance += 20;
 
       document.getElementById("balance").textContent = balance;
       saveBalance();
@@ -179,7 +189,13 @@
           ctx.shadowColor = "#00f7ff";
           ctx.shadowBlur = 25;
         } else {
-          ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+          const prize = prizes[i];
+          if (prize === "Подарок (редкий)") ctx.fillStyle = "#007bff";
+          else if (prize === "Подарок (эпический)") ctx.fillStyle = "#8a2be2";
+          else if (prize === "Подарок (обычный)") ctx.fillStyle = "#cccccc";
+          else if (prize === "Ничего") ctx.fillStyle = "#ff9900";
+          else if (prize === "0.1 TON" || prize === "1 TON") ctx.fillStyle = "#00c3ff";
+          else ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
           ctx.shadowBlur = 0;
         }
 
