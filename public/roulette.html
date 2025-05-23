@@ -20,7 +20,7 @@
       font-weight: bold;
     }
     .wheel-container {
-      margin: 40px auto;
+      margin: 40px auto 0 auto;
       width: 300px;
       height: 300px;
       position: relative;
@@ -56,6 +56,38 @@
       margin-top: 20px;
       font-size: 18px;
     }
+    /* ==== Bottom Menu ==== */
+    .bottom-menu {
+        position: fixed;
+        bottom: 0;
+        left: 0; right: 0;
+        height: 64px;
+        background: #fff;
+        box-shadow: 0 -2px 12px #c7d8f950;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        z-index: 100;
+    }
+    .menu-btn {
+        flex: 1;
+        text-align: center;
+        color: #555;
+        font-size: 15px;
+        text-decoration: none;
+        padding: 7px 0 0 0;
+        transition: color 0.13s;
+    }
+    .menu-btn span { font-size: 22px; }
+    .menu-btn.active, .menu-btn:active {
+        color: #2077fa;
+        font-weight: 700;
+    }
+    @media (max-width: 500px) {
+      .wheel-container { width: 97vw; height: 97vw; max-width: 320px; max-height: 320px; }
+    }
   </style>
 </head>
 <body>
@@ -66,6 +98,26 @@
   </div>
   <button class="spin-button" onclick="spinWheel()">Крутить за 25 монет</button>
   <div id="result"></div>
+  
+  <!-- ==== Нижнее меню ==== -->
+  <nav class="bottom-menu">
+      <a href="/roulette.html" class="menu-btn">
+          <span>🎰</span><br>
+          Рулетка
+      </a>
+      <a href="/gifts.html" class="menu-btn">
+          <span>🎁</span><br>
+          Мой инвентарь
+      </a>
+  </nav>
+  <script>
+    // Подсветка активной кнопки меню:
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+        if(window.location.pathname.endsWith(btn.getAttribute('href'))) {
+            btn.classList.add('active');
+        }
+    });
+  </script>
   <script>
     const BACKEND_URL = "https://prizegift.space";
     const tg = window.Telegram.WebApp;
