@@ -7,15 +7,16 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #f4f4f4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #111;
+      color: #fff;
       margin: 0;
       padding: 0;
       text-align: center;
     }
     .balance {
       margin-top: 20px;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
     }
     .wheel-container {
@@ -27,6 +28,7 @@
     canvas {
       width: 100%;
       height: 100%;
+      border-radius: 50%;
     }
     .arrow {
       width: 0;
@@ -43,11 +45,12 @@
       margin-top: 20px;
       padding: 12px 24px;
       font-size: 16px;
-      background-color: #2a63d4;
+      background: linear-gradient(90deg, #007bff, #00c6ff);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.6);
     }
     #result {
       margin-top: 20px;
@@ -57,28 +60,24 @@
 </head>
 <body>
   <div class="balance">Монеты: <span id="balance">0</span></div>
-
   <div class="wheel-container">
     <div class="arrow"></div>
     <canvas id="wheelCanvas" width="300" height="300"></canvas>
   </div>
-
   <button class="spin-button" onclick="spinWheel()">Крутить за 25 монет</button>
   <div id="result"></div>
-
   <script>
     const BACKEND_URL = "https://prizegift.space";
-
     const tg = window.Telegram.WebApp;
     tg.ready();
     const user = tg.initDataUnsafe?.user;
     const userId = user?.id?.toString() || "guest";
-    console.log("User ID:", userId);
 
     const prizes = ["5 монет", "10 монет", "Ничего", "TON", "Подарок (обычный)", "Подарок (редкий)", "Подарок (эпический)"];
     let balance = 0;
     let rotation = 0;
     let spinning = false;
+    let highlightIndex = -1;
 
     async function loadBalance() {
       if (userId === "guest") return;
@@ -89,7 +88,7 @@
         document.getElementById("balance").textContent = balance;
         drawWheel();
       } catch (err) {
-        console.error("❌ Ошибка загрузки баланса:", err);
+        console.error("Ошибка загрузки баланса:", err);
         balance = 100;
         document.getElementById("balance").textContent = balance;
         drawWheel();
@@ -105,23 +104,20 @@
           body: JSON.stringify({ balance })
         });
       } catch (err) {
-        console.error("❌ Ошибка сохранения баланса:", err);
+        console.error("Ошибка сохранения баланса:", err);
       }
     }
 
     function spinWheel() {
-      if (spinning || balance < 25) {
-        alert("Недостаточно монет");
-        return;
-      }
+      if (spinning || balance < 25) return alert("Недостаточно монет");
 
       balance -= 25;
       document.getElementById("balance").textContent = balance;
       saveBalance();
       spinning = true;
 
-      const spinAngle = Math.random() * 360 + 360 * 5;
-      const duration = 4000;
+      const spinAngle = Math.random() * 360 + 360 * 8;
+      const duration = 5000;
       const startRotation = rotation;
       const finalRotation = startRotation + (spinAngle * Math.PI / 180);
       const start = performance.now();
@@ -129,12 +125,11 @@
       function animate(time) {
         const elapsed = time - start;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const eased = 1 - Math.pow(1 - progress, 5); // плавное замедление
         rotation = startRotation + (finalRotation - startRotation) * eased;
         drawWheel();
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
+        if (progress < 1) requestAnimationFrame(animate);
+        else {
           spinning = false;
           determinePrize();
         }
@@ -150,8 +145,9 @@
       const pointerDeg = 270;
       const relativeDeg = (pointerDeg - deg + 360) % 360;
       const index = Math.floor(relativeDeg / anglePerSegment);
-      const prize = prizes[index];
+      highlightIndex = index;
 
+      const prize = prizes[index];
       document.getElementById("result").textContent = `Выпало: ${prize}`;
 
       if (prize === "5 монет") balance += 5;
@@ -159,6 +155,8 @@
 
       document.getElementById("balance").textContent = balance;
       saveBalance();
+      drawWheel();
+      setTimeout(() => { highlightIndex = -1; drawWheel(); }, 1500);
     }
 
     function drawWheel() {
@@ -175,7 +173,16 @@
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.arc(center.x, center.y, radius, startAngle, endAngle);
-        ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+
+        if (i === highlightIndex) {
+          ctx.fillStyle = "#00f7ff";
+          ctx.shadowColor = "#00f7ff";
+          ctx.shadowBlur = 25;
+        } else {
+          ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+          ctx.shadowBlur = 0;
+        }
+
         ctx.fill();
         ctx.stroke();
         ctx.save();
