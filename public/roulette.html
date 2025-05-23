@@ -72,16 +72,21 @@
     tg.ready();
     const user = tg.initDataUnsafe?.user;
     const userId = user?.id?.toString() || "guest";
+    const isAdmin = userId === "458343275"; // Твой Telegram user_id
 
     const prizes = [
-      "Подарок (эпический)",
       "5 монет",
       "Подарок (редкий)",
-      "0.1 TON",
-      "Подарок (обычный)",
       "20 монет",
       "Ничего",
-      "1 TON"
+      "Подарок (обычный)",
+      "0.1 TON",
+      "Подарок (эпический)",
+      "5 монет",
+      "1 TON",
+      "Подарок (обычный)",
+      "20 монет",
+      "Ничего"
     ];
 
     let balance = 0;
@@ -94,12 +99,17 @@
       try {
         const res = await fetch(`${BACKEND_URL}/balance/${userId}`);
         const data = await res.json();
-        balance = data.balance !== undefined ? data.balance : (userId === "123" ? 10000 : 20);
+        if (data.balance === undefined) {
+          balance = isAdmin ? 10000 : 20;
+          saveBalance();
+        } else {
+          balance = data.balance;
+        }
         document.getElementById("balance").textContent = balance;
         drawWheel();
       } catch (err) {
         console.error("Ошибка загрузки баланса:", err);
-        balance = userId === "458343275" ? 10000 : 20;
+        balance = isAdmin ? 10000 : 20;
         document.getElementById("balance").textContent = balance;
         drawWheel();
       }
@@ -189,13 +199,20 @@
           ctx.shadowColor = "#00f7ff";
           ctx.shadowBlur = 25;
         } else {
-          const prize = prizes[i];
-          if (prize === "Подарок (редкий)") ctx.fillStyle = "#007bff";
-          else if (prize === "Подарок (эпический)") ctx.fillStyle = "#8a2be2";
-          else if (prize === "Подарок (обычный)") ctx.fillStyle = "#cccccc";
-          else if (prize === "Ничего") ctx.fillStyle = "#ff9900";
-          else if (prize === "0.1 TON" || prize === "1 TON") ctx.fillStyle = "#00c3ff";
+          const p = prizes[i];
+          if (p === "Подарок (эпический)") ctx.fillStyle = "#8e44ad";
+          else if (p === "Подарок (редкий)") ctx.fillStyle = "#3498db";
+          else if (p === "Подарок (обычный)") ctx.fillStyle = "#95a5a6";
+          else if (p === "1 TON" || p === "0.1 TON") ctx.fillStyle = ctx.createLinearGradient(0, 0, 300, 0);
+          else if (p === "Ничего") ctx.fillStyle = "#f39c12";
           else ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
+
+          if (p === "1 TON" || p === "0.1 TON") {
+            let grad = ctx.createLinearGradient(0, 0, 300, 0);
+            grad.addColorStop(0, "#02d0ff");
+            grad.addColorStop(1, "#1abc9c");
+            ctx.fillStyle = grad;
+          }
           ctx.shadowBlur = 0;
         }
 
