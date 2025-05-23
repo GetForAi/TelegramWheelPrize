@@ -75,17 +75,14 @@
     const isAdmin = userId === "458343275"; // Твой Telegram user_id
 
     const prizes = [
-      "5 монет",
-      "Подарок (редкий)",
       "20 монет",
-      "Ничего",
-      "Подарок (обычный)",
+      "Подарок (редкий)",
       "0.1 TON",
-      "Подарок (эпический)",
       "5 монет",
+      "Подарок (эпический)",
       "1 TON",
       "Подарок (обычный)",
-      "20 монет",
+      "Ничего",
       "Ничего"
     ];
 
@@ -93,18 +90,29 @@
     let rotation = 0;
     let spinning = false;
     let highlightIndex = -1;
+    let initialized = false;
 
     async function loadBalance() {
       if (userId === "guest") return;
       try {
         const res = await fetch(`${BACKEND_URL}/balance/${userId}`);
         const data = await res.json();
-        if (data.balance === undefined) {
-          balance = isAdmin ? 10000 : 20;
-          saveBalance();
+
+        if (!initialized) {
+          if (isAdmin) {
+            balance = 10000;
+            saveBalance();
+          } else if (data.balance === undefined) {
+            balance = 20;
+            saveBalance();
+          } else {
+            balance = data.balance;
+          }
+          initialized = true;
         } else {
-          balance = data.balance;
+          balance = data.balance || 20;
         }
+
         document.getElementById("balance").textContent = balance;
         drawWheel();
       } catch (err) {
@@ -203,16 +211,13 @@
           if (p === "Подарок (эпический)") ctx.fillStyle = "#8e44ad";
           else if (p === "Подарок (редкий)") ctx.fillStyle = "#3498db";
           else if (p === "Подарок (обычный)") ctx.fillStyle = "#95a5a6";
-          else if (p === "1 TON" || p === "0.1 TON") ctx.fillStyle = ctx.createLinearGradient(0, 0, 300, 0);
-          else if (p === "Ничего") ctx.fillStyle = "#f39c12";
-          else ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
-
-          if (p === "1 TON" || p === "0.1 TON") {
+          else if (p === "1 TON" || p === "0.1 TON") {
             let grad = ctx.createLinearGradient(0, 0, 300, 0);
             grad.addColorStop(0, "#02d0ff");
             grad.addColorStop(1, "#1abc9c");
             ctx.fillStyle = grad;
-          }
+          } else if (p === "Ничего") ctx.fillStyle = "#f39c12";
+          else ctx.fillStyle = i % 2 === 0 ? "#f8b500" : "#ffdd57";
           ctx.shadowBlur = 0;
         }
 
