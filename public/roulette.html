@@ -67,7 +67,13 @@
   <div id="result"></div>
 
   <script>
-    const BACKEND_URL = "http://93.183.82.218:5000";
+    const BACKEND_URL = "https://prizegift.space";
+
+    await fetch(`${BACKEND_URL}/balance/${userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ balance })
+    });
 
     const tg = window.Telegram.WebApp;
     tg.ready();
