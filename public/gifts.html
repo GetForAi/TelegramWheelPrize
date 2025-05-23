@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f8fb; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 24px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 36px #d7e3fa90; padding: 18px; }
+        .container { max-width: 600px; margin: 24px auto 80px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 36px #d7e3fa90; padding: 18px; }
         h2 { text-align: center; }
         .gift-list { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin-top: 18px; }
         .gift { width: 120px; border-radius: 14px; background: #f9fafd; padding: 10px; box-shadow: 0 2px 8px #c7d8f950; text-align: center; position: relative; transition: 0.2s; }
@@ -26,6 +26,35 @@
             .container { padding: 5px; }
             .gift { width: 47vw; min-width: 90px;}
         }
+        /* ======= Bottom Menu ======= */
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0; right: 0;
+            height: 64px;
+            background: #fff;
+            box-shadow: 0 -2px 12px #c7d8f950;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            z-index: 100;
+        }
+        .menu-btn {
+            flex: 1;
+            text-align: center;
+            color: #555;
+            font-size: 15px;
+            text-decoration: none;
+            padding: 7px 0 0 0;
+            transition: color 0.13s;
+        }
+        .menu-btn span { font-size: 22px; }
+        .menu-btn.active, .menu-btn:active {
+            color: #2077fa;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -33,6 +62,26 @@
     <h2>Мой инвентарь</h2>
     <div id="giftList" class="gift-list">Загрузка...</div>
 </div>
+
+<!-- ==== Нижнее меню ==== -->
+<nav class="bottom-menu">
+    <a href="/roulette.html" class="menu-btn">
+        <span>🎰</span><br>
+        Рулетка
+    </a>
+    <a href="/gifts.html" class="menu-btn">
+        <span>🎁</span><br>
+        Мой инвентарь
+    </a>
+</nav>
+<script>
+// Подсветка активной кнопки меню:
+document.querySelectorAll('.menu-btn').forEach(btn => {
+    if(window.location.pathname.endsWith(btn.getAttribute('href'))) {
+        btn.classList.add('active');
+    }
+});
+</script>
 <script>
 const API_URL = "https://prizegift.space/inventory/";
 
