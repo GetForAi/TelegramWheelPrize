@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Мои подарки | PrizeGift</title>
+    <meta charset="UTF-8" />
+    <title>Мой инвентарь — PrizeGift</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f8fb; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 32px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 36px #d7e3fa90; padding: 24px; }
+        .container { max-width: 600px; margin: 24px auto; background: #fff; border-radius: 18px; box-shadow: 0 6px 36px #d7e3fa90; padding: 18px; }
         h2 { text-align: center; }
-        .gift-list { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
-        .gift { width: 120px; border-radius: 14px; background: #f9fafd; padding: 10px; box-shadow: 0 2px 8px #c7d8f950; text-align: center; position: relative; }
-        .gift img { max-width: 80px; max-height: 80px; margin-bottom: 6px; }
-        .badge { position: absolute; top: 9px; right: 8px; font-size: 12px; padding: 2px 8px; border-radius: 8px; }
+        .gift-list { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin-top: 18px; }
+        .gift { width: 120px; border-radius: 14px; background: #f9fafd; padding: 10px; box-shadow: 0 2px 8px #c7d8f950; text-align: center; position: relative; transition: 0.2s; }
+        .gift:hover { box-shadow: 0 4px 14px #c7d8f9dd; transform: translateY(-2px) scale(1.03);}
+        .badge { position: absolute; top: 10px; right: 10px; font-size: 12px; padding: 2px 8px; border-radius: 8px; }
         .common  { background: #e7e7e7; color: #3b3b3b; }
         .rare    { background: #91caff; color: #165b94; }
         .epic    { background: #b18cff; color: #37227b; }
@@ -19,37 +20,40 @@
         .status { font-size: 12px; margin-top: 5px; }
         .claimed { color: #31c731; }
         .waiting { color: #e09815; }
+        .gift-title { font-size: 28px; margin-bottom: 4px; }
+        .date { color: #a6a6a6; font-size: 11px; }
+        @media (max-width: 500px) {
+            .container { padding: 5px; }
+            .gift { width: 47vw; min-width: 90px;}
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>Мои подарки</h2>
+    <h2>Мой инвентарь</h2>
     <div id="giftList" class="gift-list">Загрузка...</div>
 </div>
 <script>
 const API_URL = "https://prizegift.space/inventory/";
 
-let userId = null;
-
-// 1. Получить user_id из Telegram WebApp
+// 1. Получаем user_id из Telegram WebApp (в Telegram), либо спрашиваем вручную (для локального теста)
 function getUserId() {
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
         return Telegram.WebApp.initDataUnsafe.user.id;
     }
-    // Fallback для отладки — можно временно вписать свой user_id
+    // Для теста вне Telegram WebApp — спросим вручную
     return prompt("Введите свой user_id Telegram:");
 }
 
-// 2. Подгружаем подарки
 async function loadGifts() {
-    userId = getUserId();
+    const userId = getUserId();
     if (!userId) {
         document.getElementById('giftList').innerHTML = "user_id не найден!";
         return;
     }
     try {
-        let res = await fetch(API_URL + userId);
-        let data = await res.json();
+        const res = await fetch(API_URL + userId);
+        const data = await res.json();
         if (!data.gifts || !data.gifts.length) {
             document.getElementById('giftList').innerHTML = "<div>У вас пока нет подарков...</div>";
             return;
@@ -60,17 +64,14 @@ async function loadGifts() {
             let status = g.claimed ? "<span class='status claimed'>Получен</span>" :
                          g.needs_send ? "<span class='status waiting'>Ожидает отправки</span>" : "<span class='status'>В наличии</span>";
 
-            // Показываем картинку через file_id (как preview Telegram gifts) — нужно доработать!
-            // Пока просто плейсхолдер, но если у тебя есть url к картинке — подставь вместо ссылки ниже.
-            let imgUrl = `https://telegram-wheel-prize.vercel.app/images/gifts/${g.file_id}.webp`;
-            // Или если нет изображений — используем emoji как картинку (или статику)
-            if (!g.file_id) imgUrl = "https://telegram.org/img/t_logo.png";
+            // Показать emoji/название — title
+            let displayTitle = (g.title && g.title.length <= 3) ? `<div class="gift-title">${g.title}</div>` : `<div style="font-size:16px; margin-bottom:2px">${g.title || "Подарок"}</div>`;
 
             html += `<div class="gift">
                 <span class="${badgeClass}">${g.category.toUpperCase()}</span>
                 <div class="source">${g.source}</div>
-                <img src="${imgUrl}" alt="${g.title}" loading="lazy" onerror="this.src='https://telegram.org/img/t_logo.png'">
-                <div>${g.title}</div>
+                ${displayTitle}
+                <div class="date">${g.received_at ? g.received_at.split(" ")[0] : ""}</div>
                 ${status}
             </div>`;
         }
